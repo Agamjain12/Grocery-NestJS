@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+model Grocery {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  price       Int
+  quantity    Int?
+  rating      Int?
+  image       File[]
+  name        String?
+  category    String?
+  description String?
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("grocery")
+}
+model File {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  originalName String  @map("original_name")
+  size         Float
+  mime         String
+  url          String
+  groceryId    String  @map("grocery_id")
+  grocery      Grocery @relation(fields: [groceryId], references: [id])
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("file")
+}
