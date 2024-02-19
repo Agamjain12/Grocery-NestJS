@@ -1,9 +1,13 @@
+import { IsFiles, MemoryStoredFile } from 'nestjs-form-data';
+
 export class CreateGrocerydto {
-  readonly price: number;
-  readonly quantity: number;
-  readonly image: string;
-  readonly rating: number;
-  readonly name: string;
-  readonly category: string;
-  readonly description: string;
+  @IsFiles()
+  files: MemoryStoredFile[];
+
+  name: string;
+  price: string;
+  rating: string;
+  quantity: string;
+  category: string;
+  description: string;
 }

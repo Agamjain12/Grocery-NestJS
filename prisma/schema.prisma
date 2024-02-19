@@ -10,7 +10,7 @@ model Grocery {
   price       Int
   quantity    Int?
   rating      Int?
-  image       File[]
+  images       File[]
   name        String?
   category    String?
   description String?
@@ -30,4 +30,13 @@ model File {
   updatedAt DateTime @updatedAt @map("updated_at")
   createdAt DateTime @default(now()) @map("created_at")
   @@map("file")
+}
+
+model User {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    email       String @unique
+    hashedPassword    String @unique
+    updatedAt   DateTime @updatedAt @map("updated_at")
+    createdAt   DateTime @default(now()) @map("created_at")
+  @@map("user")
 }

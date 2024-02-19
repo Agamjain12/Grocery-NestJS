@@ -1,24 +1,28 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
+import { JwtModule } from '@nestjs/jwt';
 import { AppService } from './app.service';
-import { GroceryModule } from './grocery/grocery.module';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './prisma/prisma.module';
-import { TransformResponseInterceptor } from './transform-response-interceptor/transform-response-interceptor.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { AppController } from './app.controller';
+import { PrismaModule } from './prisma/prisma.module';
+import { NestjsFormDataModule } from 'nestjs-form-data';
+import { GroceryModule } from './grocery/grocery.module';
+import { TransformResponseInterceptor } from './transform-response-interceptor/transform-response-interceptor.interceptor';
 
 @Module({
   imports: [
+    JwtModule,
+    AuthModule,
+    PrismaModule,
+    GroceryModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
     }),
-    GroceryModule,
-    PrismaModule,
-    AuthModule,
-    UsersModule,
+    NestjsFormDataModule.config({
+      isGlobal: true,
+    }),
   ],
   controllers: [AppController],
   providers: [

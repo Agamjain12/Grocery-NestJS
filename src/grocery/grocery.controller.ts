@@ -1,17 +1,18 @@
 import {
-  Body,
-  Controller,
-  Delete,
   Get,
+  Post,
+  Body,
   Param,
   Patch,
-  Post,
-  Put,
+  Delete,
+  Controller,
   UseInterceptors,
 } from '@nestjs/common';
+import { join } from 'path';
 import { GroceryService } from './grocery.service';
 import { CreateGrocerydto } from './dto/create-grocery.dto';
 import { UpdateGroceryDto } from './dto/update-grocery.dto';
+import { FormDataRequest, MemoryStoredFile } from 'nestjs-form-data';
 import { SaveToRecordInterceptor } from './interceptors/save-to-record/save-to-record.interceptor';
 import { SaveToRecord2Interceptor } from './interceptors/save-to-record2/save-to-record2.interceptor';
 
@@ -25,38 +26,27 @@ export class GroceryController {
   }
 
   @Get(':id')
-  async findById(
-    @Param('id')
-    id: string,
-  ) {
+  async findById(@Param('id') id: string) {
     return await this.groceryService.findById(id);
   }
 
   @Post()
-  async create(
-    @Body()
-    grocery: CreateGrocerydto,
-  ) {
+  @FormDataRequest({
+    storage: MemoryStoredFile,
+  })
+  async create(@Body() grocery: CreateGrocerydto) {
     return await this.groceryService.create(grocery);
   }
 
-  @UseInterceptors(SaveToRecordInterceptor)
   @Patch(':id')
-  async updateById(
-    @Param('id')
-    id: string,
-    @Body()
-    grocery: UpdateGroceryDto,
-  ) {
+  @UseInterceptors(SaveToRecordInterceptor)
+  async updateById(@Param('id') id: string, @Body() grocery: UpdateGroceryDto) {
     return await this.groceryService.updateById(id, grocery);
   }
 
-  @UseInterceptors(SaveToRecord2Interceptor)
   @Delete(':id')
-  async deleteById(
-    @Param('id')
-    id: string,
-  ) {
+  @UseInterceptors(SaveToRecord2Interceptor)
+  async deleteById(@Param('id') id: string) {
     return await this.groceryService.deleteById(id);
   }
 }

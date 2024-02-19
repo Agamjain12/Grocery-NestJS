@@ -1,25 +1,60 @@
-import { Injectable, NotFoundException, UseInterceptors } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGrocerydto } from './dto/create-grocery.dto';
 import { UpdateGroceryDto } from './dto/update-grocery.dto';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UseInterceptors,
+} from '@nestjs/common';
 import { SaveToRecordInterceptor } from './interceptors/save-to-record/save-to-record.interceptor';
-
+import { v2 as cloudinary } from 'cloudinary';
+import toStream from 'buffer-to-stream';
 @Injectable()
 export class GroceryService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(body: CreateGrocerydto) {
-    return await this.prismaService.grocery.create({
+    const uploadResponse = await Promise.all(
+      body.files.map((file) => {
+        const upload = cloudinary.uploader.upload_stream((error, result) => {
+          if (error)
+            throw new InternalServerErrorException('error uploading files');
+        });
+
+        toStream(file.buffer).pipe(upload);
+      }),
+    );
+
+    const imageUrlArray = uploadResponse.map((response) => response.secure_url);
+
+    const newGroc = await this.prismaService.grocery.create({
       data: {
-        category: body.category,
-        description: body.description,
-        image: body.image,
-        price: body.price,
-        quantity: body.quantity,
         name: body.name,
-        rating: body.rating,
+        category: body.category,
+        price: Number(body.price),
+        rating: Number(body.rating),
+        description: body.description,
+        quantity: Number(body.quantity),
       },
     });
+
+    await Promise.all(
+      body.files.map((file) =>
+        this.prismaService.file.create({
+          data: {
+            url: '',
+            size: file.size,
+            name: 'newname',
+            mime: file.mimetype,
+            groceryId: newGroc.id,
+            originalName: file.originalName,
+          },
+        }),
+      ),
+    );
+
+    return newGroc;
   }
 
   async getAll() {
@@ -41,13 +76,12 @@ export class GroceryService {
     const groc = this.prismaService.grocery.update({
       where: { id },
       data: {
-        category: grocery.category,
-        description: grocery.description,
-        image: grocery.image,
-        price: grocery.price,
-        quantity: grocery.quantity,
         name: grocery.name,
-        rating: grocery.rating,
+        category: grocery.category,
+        price: Number(grocery.price),
+        rating: Number(grocery.rating),
+        description: grocery.description,
+        quantity: Number(grocery.quantity),
       },
     });
 
